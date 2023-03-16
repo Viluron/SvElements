@@ -12,11 +12,21 @@
 	export let value = '';
 	export let pattern: RegExp = undefined;
 	export let errorMessage = 'Invalid input';
+	export let required = false;
+	export let disabled = false;
 
 	const dispatch = createEventDispatcher();
 
 	let input: HTMLInputElement;
 	let error = false;
+
+	let placeholderString = required ? `${placeholder} *` : placeholder;
+
+	$: input,
+		(() => {
+			if (!input) return;
+			input.value = value;
+		})();
 
 	function emit(event: string) {
 		return () => dispatch(event, input.value);
@@ -24,15 +34,23 @@
 
 	function onChange() {
 		value = input.value;
-		error = pattern && !pattern.test(input.value);
+		validate();
 		emit('change');
+	}
+
+	function validate() {
+		error = pattern && !pattern.test(input.value);
+
+		if (error) return;
+
+		error = required && input.value === '';
 	}
 </script>
 
-<div class={`custom-input ${className ?? ''}`}>
+<div class={`custom-input ${className ?? ''}`} class:disabled>
 	<div class="input-wrapper" class:error>
 		{#if movePlaceholder}
-			<span class:up={value} class:error>{placeholder}</span>
+			<span class:up={value} class:error>{placeholderString}</span>
 		{/if}
 		<input
 			bind:this={input}
@@ -40,13 +58,15 @@
 			{name}
 			{type}
 			{autocomplete}
+			{disabled}
 			pattern={pattern?.toString()}
 			placeholder={!movePlaceholder && placeholder ? placeholder : undefined}
 			on:change={onChange}
 			on:input={emit('input')}
+			on:blur={validate}
 		/>
 	</div>
-	<div class="error-message" hidden={!error}>{errorMessage}</div>
+	<div class="error-message" hidden={!error}>{required && !value ? 'This field is required.' : errorMessage}</div>
 </div>
 
 <style scoped>
@@ -60,6 +80,14 @@
 		font-family: inherit;
 	}
 
+	.custom-input.disabled input {
+		cursor: not-allowed;
+	}
+
+	.custom-input.disabled .input-wrapper {
+		border: none;
+	}
+
 	span {
 		position: absolute;
 		top: 0;
@@ -71,7 +99,7 @@
 	}
 
 	span.up {
-		transform: translateY(-100%);
+		transform: translateY(-110%);
 		font-size: 0.7em;
 	}
 
@@ -159,5 +187,11 @@
 		width: 100%;
 		font-size: 0.7em;
 		transition: 0.3s ease-in-out;
+	}
+
+	.disabled {
+		background: var(--back-color);
+		border-radius: 4px;
+		cursor: not-allowed;
 	}
 </style>
