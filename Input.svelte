@@ -10,39 +10,43 @@
 	export let autocomplete: 'off' | 'on' = 'off';
 	export let movePlaceholder = true;
 	export let value = '';
+	export let pattern: RegExp = undefined;
+	export let errorMessage = 'Invalid input';
 
 	const dispatch = createEventDispatcher();
 
 	let input: HTMLInputElement;
-	let _value: String = '';
+	let error = false;
 
 	function emit(event: string) {
 		return () => dispatch(event, input.value);
 	}
 
 	function onChange() {
-		_value = input.value;
 		value = input.value;
+		error = pattern && !pattern.test(input.value);
 		emit('change');
 	}
 </script>
 
 <div class={`custom-input ${className ?? ''}`}>
-	<div class="input-wrapper">
+	<div class="input-wrapper" class:error>
 		{#if movePlaceholder}
-			<span class:up={_value}>{placeholder}</span>
+			<span class:up={value} class:error>{placeholder}</span>
 		{/if}
 		<input
 			bind:this={input}
+			class:error
 			{name}
 			{type}
 			{autocomplete}
+			pattern={pattern?.toString()}
 			placeholder={!movePlaceholder && placeholder ? placeholder : undefined}
 			on:change={onChange}
 			on:input={emit('input')}
 		/>
-		<div class="border" />
 	</div>
+	<div class="error-message" hidden={!error}>{errorMessage}</div>
 </div>
 
 <style scoped>
@@ -68,7 +72,11 @@
 
 	span.up {
 		transform: translateY(-100%);
-		font-size: 0.5em;
+		font-size: 0.7em;
+	}
+
+	span.error {
+		color: var(--error-color);
 	}
 
 	span:has(input:focus) {
@@ -78,7 +86,7 @@
 	span:has(+ input:focus) {
 		color: var(--hover-color);
 		transform: translateY(-100%);
-		font-size: 0.5em;
+		font-size: 0.7em;
 	}
 
 	input {
@@ -102,6 +110,10 @@
 		width: 100%;
 		position: relative;
 		border-bottom: 1px solid var(--faint-color);
+	}
+
+	.input-wrapper.error {
+		border-bottom: 1px solid var(--error-color);
 	}
 
 	.input-wrapper::after {
@@ -138,5 +150,14 @@
 		width: 50%;
 		position: absolute;
 		transition: width 0.2s ease-out;
+	}
+
+	.error-message {
+		margin-top: 0.2em;
+		color: var(--error-color);
+		text-align: left;
+		width: 100%;
+		font-size: 0.7em;
+		transition: 0.3s ease-in-out;
 	}
 </style>
