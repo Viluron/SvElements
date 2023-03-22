@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import Icon from './Icon.svelte';
+	import { createEventDispatcher, getContext } from 'svelte';
+	import Icon from '../Icon/Icon.svelte';
 
 	const dispatch = createEventDispatcher();
 

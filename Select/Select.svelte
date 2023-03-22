@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import Icon from './Icon.svelte';
+	import Icon from '../Icon/Icon.svelte';
 
 	export let options: string[] = [];
 	export let selected: string = options[0];
